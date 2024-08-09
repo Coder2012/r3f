@@ -9,7 +9,7 @@ import { usePathfinding } from "../hooks/usePathfinding";
 
 export const Scene = ({ navMeshUrl }) => {
   const { camera, gl } = useThree();
-  const { navMeshRef, vehicleRef, entityManagerRef, timeRef } =
+  const { navMeshRef, vehicleRef, entityManagerRef, timeRef, navMeshGroupRef } =
     usePathfinding(navMeshUrl);
 
   const handleClick = (event) => {
@@ -22,7 +22,8 @@ export const Scene = ({ navMeshUrl }) => {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObject(navMeshRef.current, true);
+    const intersects = raycaster.intersectObject(navMeshGroupRef.current, true);
+    console.log(intersects)
 
     if (intersects.length > 0) {
       const target = new YukaVector3().copy(intersects[0].point);
@@ -49,6 +50,7 @@ export const Scene = ({ navMeshUrl }) => {
       <Environment preset="sunset" />
 
       <Floor />
+     {/* <primitive object={navMeshGroupRef.current} /> */}
       <NPC
         vehicleRef={vehicleRef}
         entityManagerRef={entityManagerRef}
