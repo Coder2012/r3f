@@ -4,10 +4,13 @@ import { Scene } from "./components/Scene";
 import { Archery } from "./components/Archery";
 
 const App = () => {
+  const pitch = -12 * (Math.PI / 180);
+  const yaw = 0 * (Math.PI / 180);
+
   return (
-    <Canvas shadows camera={{ position: [5, 5, 5], fov: 50 }}>
+    <Canvas shadows camera={{ fov: 50 }}>
       {/* <Scene navMeshUrl="/floor.glb" /> */}
-      <Archery />
+      <Archery pitch={pitch} yaw={yaw} />
     </Canvas>
   );
 };
