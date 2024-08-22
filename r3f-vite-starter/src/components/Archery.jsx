@@ -1,7 +1,7 @@
-import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef, useEffect } from "react";
-import { Vector3, Quaternion, ArrowHelper, Box3 } from "three";
+import { Vector3, Quaternion, Box3 } from "three";
+import gsap from "gsap";
 import { Target } from "./Target";
 import { Archer } from "./Archer";
 
@@ -19,32 +19,41 @@ export const Archery = ({ pitch, yaw }) => {
   const isArrowFiredRef = useRef(false);
   const gravityRef = useRef(new Vector3(0, -9.81, 0));
 
-  const forwardDirectionRef = useRef(new Vector3());
-  const arrowHelperRef = useRef();
-
   const handleKeyDown = (event) => {
-    if (event.key === " ") {
-      const arrow = archerRefs.arrow1Ref.current;
-      const initialSpeed = 27; // Adjust this value as needed
+    const bow = archerRefs.bowRef.current;
+    const arrow = archerRefs.arrow1Ref.current;
 
-      // Get the arrow's world quaternion
-      const arrowQuaternion = new Quaternion();
-      arrow.getWorldQuaternion(arrowQuaternion);
+    switch (event.key) {
+      case " ":
+        const initialSpeed = 27; // Adjust this value as needed
 
-      // Set the initial velocity based on the arrow's orientation
-      velocityRef.current
-        .set(0, 0, 1)
-        .applyQuaternion(arrowQuaternion)
-        .multiplyScalar(initialSpeed);
-      isArrowFiredRef.current = true;
+        // Get the arrow's world quaternion
+        const arrowQuaternion = new Quaternion();
+        arrow.getWorldQuaternion(arrowQuaternion);
+
+        // Set the initial velocity based on the arrow's orientation
+        velocityRef.current
+          .set(0, 0, 1)
+          .applyQuaternion(arrowQuaternion)
+          .multiplyScalar(initialSpeed);
+        isArrowFiredRef.current = true;
+        break;
+
+      case "1":
+        moveToPosition(
+          [bow.position.x - 3, bow.position.y + 2, bow.position.z],
+          new Vector3(0, 0, 0)
+        );
+        break;
     }
   };
 
   useEffect(() => {
-    camera.position.set(0, 3, -3);
+    camera.position.set(-1, 1, -3);
     camera.layers.enable(1);
 
     targetRef.current.position.set(0, 0.5, 30);
+    camera.lookAt(targetRef.current.position);
 
     const bow = archerRefs.bowRef.current;
     const arrow = archerRefs.arrow1Ref.current;
@@ -54,15 +63,6 @@ export const Archery = ({ pitch, yaw }) => {
       arrow.rotation.copy(bow.rotation);
     }
 
-    const arrowHelper = new ArrowHelper(
-      new Vector3(0, 0, 1),
-      bow.position,
-      1,
-      0xff0000
-    );
-    scene.add(arrowHelper);
-    arrowHelperRef.current = arrowHelper;
-
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -71,18 +71,12 @@ export const Archery = ({ pitch, yaw }) => {
   }, [scene, camera]);
 
   useFrame((state, delta) => {
-    camera.lookAt(targetRef.current.position);
-
     const bow = archerRefs.bowRef.current;
     const arrow = archerRefs.arrow1Ref.current;
 
     if (bow && arrow && !isArrowFiredRef.current) {
       bow.rotation.set(pitch, yaw, 0);
       arrow.rotation.copy(bow.rotation);
-
-      arrow.getWorldDirection(forwardDirectionRef.current);
-      arrowHelperRef.current.setDirection(forwardDirectionRef.current);
-      arrowHelperRef.current.position.copy(bow.position);
     }
 
     if (arrow && isArrowFiredRef.current) {
@@ -125,9 +119,37 @@ export const Archery = ({ pitch, yaw }) => {
     }
   });
 
+  const moveToPosition = (position, targetVector, duration = 0.5) => {
+    // Store the initial quaternion
+    const initialQuaternion = camera.quaternion.clone();
+
+    // Move the camera to the target position first
+    gsap.to(camera.position, {
+      x: position[0],
+      y: position[1],
+      z: position[2],
+      duration: duration,
+      onUpdate: function () {
+        // Calculate the target quaternion by making the camera look at the target
+        camera.lookAt(targetVector);
+        const targetQuaternion = camera.quaternion.clone();
+
+        // Slerp between the initial and target quaternion
+        camera.quaternion.slerpQuaternions(
+          initialQuaternion,
+          targetQuaternion,
+          this.progress()
+        );
+      },
+      onComplete: () => {
+        // Ensure final orientation is correct after animation
+        camera.lookAt(targetVector);
+      },
+    });
+  };
+
   return (
     <>
-      <OrbitControls />
       <directionalLight
         castShadow
         position={[5, 15, -5]}

@@ -1,0 +1,20 @@
+<svg
+  width="200"
+  height="200"
+  viewBox="0 0 200 200"
+>
+  <line
+    x1="10"
+    y1="190"
+    x2="190"
+    y2="190"
+    stroke="black"
+    stroke-width="2"
+  />
+  <circle
+    cx="190"
+    cy="190"
+    r="8"
+    fill="green"
+  />
+</svg>
