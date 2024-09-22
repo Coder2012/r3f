@@ -24,7 +24,7 @@ export const usePathfinding = (gltfPath) => {
 
       const vehicle = vehicleRef.current;
       vehicle.maxSpeed = 2;
-      vehicle.maxForce = 8;
+      vehicle.maxForce = 20;
 
       const followPathBehavior = new FollowPathBehavior();
       followPathBehavior.active = false;

@@ -14,6 +14,7 @@ export const Scene = ({ navMeshUrl }) => {
     usePathfinding(navMeshUrl);
 
   const handleClick = (event) => {
+    event.stopPropagation();
     if (!navMeshRef.current) return;
 
     const mouse = new THREE.Vector2();
